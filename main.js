@@ -16,33 +16,69 @@ const svgScatter = d3.select("#scatterPlot")
 d3.csv("colleges.csv").then(data => {
     // 2: ... AND REFORMAT DATA
     data.forEach(d => {
+        // d["new_column_name"] = +d["original_column_name_with_non_numeric_values"]
         d["earnings"] = +d["Median Earnings 8 years After Entry"];
         d["debt"] = +d["Median Debt on Graduation"];
     })
-
+    // console.log(
+    //     typeof data[0]['earnings']
+    //     , typeof data[0]['Median Earnings 8 years After Entry']
+    // )
     // 3: SET AXES SCALES
-    //Your code...
+    // 3.1 X-scale: earnings
+    const xEarnings = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.earnings)]) // range of input data
+        .range([0, width]) // range of output data
+    // 3.2 Y-scale: debt
+    const yDebt = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.debt)]) // range of input data
+        .range([height, 0]) // range of output data
 
     // 4: PLOT POINTS
-    //Your code...
+    svgScatter
+        .attr("class", "scatter") // class 설정은 최초로 먹여줘야 적용됨
+        .selectAll("circle") // "shape" = circle, rectangle, line, etc.
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) {
+            return xEarnings(d["earnings"])
+        })
+        .attr("cy", d => yDebt(d.debt))
+        .attr("r", 5);
 
     // 5: AXES
     // Add x-axis
-    //Your code...
-    
+    svgScatter.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(xEarnings)) // axisBottom = x축 선의 '아래'에 틱을 긋겠다. 
+        
     // Add y-axis
-    //Your code...
+    svgScatter.append("g")
+        .call(d3.axisLeft(yDebt)) // = y축 선의 '왼쪽'에 틱을 삐져나오게 하겠다.
     
-
     // 6: ADD LABELS
     // Add title
-    //Your code...
-    
+    svgScatter.append("text")
+        .attr("class", "title")
+        .attr("x", width / 2)
+        .attr("y", -margin.top / 2) // centered 
+        .text("Median Earnings 8 Years After Entries v.s. Median Debt upon Graduation")
+        
     // Add x-axis label
-    //Your code...
-    
+    svgScatter.append("text")
+        .attr("class", "axis-label")
+        .attr("x", width / 2)
+        .attr("y", height + (margin.bottom / 2)) // centered 
+        .text("Earnings ($)")
+        
     // Add y-axis label
-    //Your code...
+    svgScatter.append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left / 2 - 20) // centered in left margin (+ 왼쪽으로 20px 만큼)
+        .text("Median Debt ($)")
     
 
     // [optional challenge] 7: ADD TOOL-TIP
